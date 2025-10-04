@@ -2,11 +2,15 @@ package com.dAdK.dubAI.controller;
 
 import com.dAdK.dubAI.dto.userdto.UserRequestDTO;
 import com.dAdK.dubAI.dto.userdto.UserResponseDTO;
+import com.dAdK.dubAI.models.User;
 import com.dAdK.dubAI.services.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,6 +44,18 @@ public class UserController {
     @PutMapping("/{username}")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable String username, @Valid @RequestBody UserRequestDTO userRequestDTO) {
         return userService.updateUser(username, userRequestDTO)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Fetch user details", security = @SecurityRequirement(name = "bearerAuth"))
+    @GetMapping("/details")
+    public ResponseEntity<UserResponseDTO> getDetails(Authentication authentication) {
+        if (authentication == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String userId = ((User) authentication.getPrincipal()).getUsername();
+        return userService.getUser(userId)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

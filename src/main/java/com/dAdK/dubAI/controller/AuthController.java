@@ -3,13 +3,11 @@ package com.dAdK.dubAI.controller;
 import com.dAdK.dubAI.dto.userdto.LoginRequestDTO;
 import com.dAdK.dubAI.dto.userdto.OtpVerificationRequestDTO;
 import com.dAdK.dubAI.dto.userdto.UserRequestDTO;
-import com.dAdK.dubAI.dto.userdto.UserResponseDTO;
 import com.dAdK.dubAI.models.User;
 import com.dAdK.dubAI.services.authservice.AuthService;
 import com.dAdK.dubAI.services.otp.OtpService;
 import com.dAdK.dubAI.services.userservice.UserService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -17,9 +15,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
 
@@ -39,13 +40,11 @@ public class AuthController {
 
     @Operation(summary = "Initiate user registration with OTP", description = "Validates user input, creates a pending user, and sends an OTP")
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> registerUser(@Valid @RequestBody UserRequestDTO userRequestDTO) {
+    public ResponseEntity<Map<String, String>> registerUser(@Valid @RequestBody UserRequestDTO userRequestDTO) throws IOException {
         userService.userValidation(userRequestDTO);
         User user = userService.createPendingUser(userRequestDTO); // Create user with pending status
         otpService.generateOtp(user); // Generate and send OTP
-
         // Return a response indicating OTP has been sent
-        // Correctly format LocalDate to String for UserResponseDTO
         return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "OTP sent to your registered email/phone. Please verify.", "userId", user.getId()));
     }
 
@@ -75,18 +74,6 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginRequestDTO dto) {
         String token = authService.login(dto);
         return ResponseEntity.ok(Map.of("token", token));
-    }
-
-    @Operation(summary = "Fetch user details", security = @SecurityRequirement(name = "bearerAuth"))
-    @GetMapping("/details")
-    public ResponseEntity<UserResponseDTO> getDetails(Authentication authentication) {
-        if (authentication == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        String userId = ((User) authentication.getPrincipal()).getUsername();
-        return userService.getUser(userId)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 }

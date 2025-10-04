@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
@@ -35,7 +36,7 @@ public class OtpServiceImpl implements OtpService {
     private static final Logger logger = LoggerFactory.getLogger(OtpServiceImpl.class);
 
     @Override
-    public String generateOtp(User user) {
+    public String generateOtp(User user) throws IOException {
         String otp = String.format("%06d", new Random().nextInt(999999));
         Otp otpEntity = Otp.builder()
                 .otp(otp)
