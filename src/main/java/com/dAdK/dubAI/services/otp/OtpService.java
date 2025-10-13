@@ -1,13 +1,20 @@
 package com.dAdK.dubAI.services.otp;
 
-import com.dAdK.dubAI.models.User;
+import com.dAdK.dubAI.models.Otp;
 
-import java.io.IOException;
 import java.util.Optional;
 
 public interface OtpService {
 
-    Optional<User> findByUserId(String userId);
-    String generateOtp(User user) throws IOException;
-    boolean validateOtp(User user, String otp);
+    void generateAndSendOtp(String userId, String target, String type);
+
+    void resendOtp(String userId, String target, String type);
+
+    boolean validateOtp(String userId, String otp, String type);
+
+    void deleteOtpsByUserId(String userId);
+
+    boolean hasValidOtp(String userId, String type);
+
+    Optional<Otp> findByUserId(String userId);
 }

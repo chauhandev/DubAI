@@ -29,14 +29,14 @@ public class SecurityConfig {
                                 "/index.html",
                                 "/assets/**",
                                 "/favicon.png",
-                                "logo.png",
-                                "placeholder.svg",
-                                "robots.txt",
+                                "/logo.png",
+                                "/placeholder.svg",
+                                "/robots.txt",
                                 "/manifest.json"
                         ).permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/register", "/api/auth/verify-otp").permitAll() // public
+                        .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/register", "/api/auth/verify-otp", "api/auth/google-login").permitAll() // public
                         .requestMatchers("/api-docs/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-                          .anyRequest().authenticated() // everything else requires JWT
+                        .anyRequest().authenticated() // everything else requires JWT
                 )
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)

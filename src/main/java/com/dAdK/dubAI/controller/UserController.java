@@ -51,7 +51,7 @@ public class UserController {
     @Operation(summary = "Fetch user details", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/details")
     public ResponseEntity<UserResponseDTO> getDetails(Authentication authentication) {
-        if (authentication == null) {
+        if (authentication == null || authentication.getPrincipal() == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         String userId = ((User) authentication.getPrincipal()).getUsername();
