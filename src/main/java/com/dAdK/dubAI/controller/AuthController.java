@@ -1,5 +1,6 @@
 package com.dAdK.dubAI.controller;
 
+import com.dAdK.dubAI.dto.ApiResponse;
 import com.dAdK.dubAI.dto.userdto.GoogleLoginRequestDTO;
 import com.dAdK.dubAI.dto.userdto.LoginRequestDTO;
 import com.dAdK.dubAI.dto.userdto.OtpVerificationRequestDTO;
@@ -14,7 +15,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
@@ -33,40 +37,54 @@ public class AuthController {
 
     @Operation(summary = "Initiate user registration with OTP", description = "Validates user input, creates a pending user, and sends an OTP")
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> registerUser(@Valid @RequestBody UserRequestDTO userRequestDTO, HttpServletRequest request) throws IOException {
+    public ResponseEntity<ApiResponse<Map<String, String>>> registerUser(@Valid @RequestBody UserRequestDTO userRequestDTO, HttpServletRequest request) throws IOException {
         String ipAddress = getClientIp(request);
         Map<String, String> response = authService.registerUser(userRequestDTO, ipAddress);
-        return ResponseEntity.status(Integer.parseInt(response.get("status"))).body(response);
+        int statusCode = Integer.parseInt(response.get("status"));
+        if (statusCode >= 200 && statusCode < 300) {
+            return ResponseEntity.status(statusCode)
+                    .body(ApiResponse.success(response, response.get("message")));
+        } else {
+            return ResponseEntity.status(statusCode)
+                    .body(ApiResponse.error(response.get("message")));
+        }
     }
 
     @Operation(summary = "Verify OTP and complete registration", description = "Verifies the OTP and completes user registration")
     @PostMapping("/verify-otp")
-    public ResponseEntity<Map<String, String>> verifyOtp(@RequestBody OtpVerificationRequestDTO otpVerificationRequestDTO) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> verifyOtp(@RequestBody OtpVerificationRequestDTO otpVerificationRequestDTO) {
         Map<String, String> response = authService.verifyOtp(otpVerificationRequestDTO);
-        return ResponseEntity.status(Integer.parseInt(response.get("status"))).body(response);
+        int statusCode = Integer.parseInt(response.get("status"));
+        if (statusCode >= 200 && statusCode < 300) {
+            return ResponseEntity.status(statusCode)
+                    .body(ApiResponse.success(response, response.get("message")));
+        } else {
+            return ResponseEntity.status(statusCode)
+                    .body(ApiResponse.error(response.get("message")));
+        }
     }
 
     @Operation(summary = "User login", description = "Login using username, email or contact number and get JWT token")
     @PostMapping("/login")
-    public ResponseEntity<Map<String, String>> login(@Valid @RequestBody LoginRequestDTO dto) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> login(@Valid @RequestBody LoginRequestDTO dto) {
         String token = authService.login(dto);
-        return ResponseEntity.ok(Map.of("token", token));
+        return ResponseEntity.ok(ApiResponse.success(Map.of("token", token), "Login successful"));
     }
 
     @Operation(summary = "Sign in with Google", description = "Authenticates user with Google ID token and returns JWT token")
     @PostMapping("/google-login")
-    public ResponseEntity<Map<String, String>> googleLogin(@Valid @RequestBody GoogleLoginRequestDTO dto) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> googleLogin(@Valid @RequestBody GoogleLoginRequestDTO dto) {
         try {
             String token = authService.googleLogin(dto.getIdToken());
-            return ResponseEntity.ok(Map.of("token", token));
+            return ResponseEntity.ok(ApiResponse.success(Map.of("token", token), "Google login successful"));
         } catch (GeneralSecurityException e) {
             logger.error("Google login failed due to security exception: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("message", "Google login failed: " + e.getMessage()));
+                    .body(ApiResponse.error("Authentication failed: " + e.getMessage()));
         } catch (IOException e) {
             logger.error("Google login failed due to IO exception: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("message", "Google login failed: " + e.getMessage()));
+                    .body(ApiResponse.error("Service error: " + e.getMessage()));
         }
     }
 

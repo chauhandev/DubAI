@@ -2,12 +2,10 @@ package com.dAdK.dubAI.dto.userdto;
 
 import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
 @Builder
 public class UserResponseDTO {
     private String id;
@@ -15,9 +13,6 @@ public class UserResponseDTO {
     private String fullName;
     private String gender;
     private String dateOfBirth;
+    private String email;
     private LocalDateTime lastLoginAt;
-
-    public String getUserId() {
-        return id;
-    }
 }

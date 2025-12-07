@@ -1,5 +1,6 @@
 package com.dAdK.dubAI.controller;
 
+import com.dAdK.dubAI.dto.ApiResponse;
 import com.dAdK.dubAI.dto.userdto.UserRequestDTO;
 import com.dAdK.dubAI.dto.userdto.UserResponseDTO;
 import com.dAdK.dubAI.models.User;
@@ -28,35 +29,40 @@ public class UserController {
 
     @Operation(summary = "Get All Users", description = "Returns list of all users")
     @GetMapping
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<ApiResponse<List<UserResponseDTO>>> getAllUsers() {
+        List<UserResponseDTO> users = userService.getAllUsers();
+        return ResponseEntity.ok(ApiResponse.success(users, "Users retrieved successfully"));
     }
 
     @Operation(summary = "Get User", description = "Get user details")
     @GetMapping("/{username}")
-    public ResponseEntity<UserResponseDTO> getUser(@PathVariable String username) {
+    public ResponseEntity<ApiResponse<UserResponseDTO>> getUser(@PathVariable String username) {
         return userService.getUser(username)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .map(user -> ResponseEntity.ok(ApiResponse.success(user, "User retrieved successfully")))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("User not found")));
     }
 
     @Operation(summary = "Update user", description = "Update user details")
     @PutMapping("/{username}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable String username, @Valid @RequestBody UserRequestDTO userRequestDTO) {
+    public ResponseEntity<ApiResponse<UserResponseDTO>> updateUser(@PathVariable String username, @Valid @RequestBody UserRequestDTO userRequestDTO) {
         return userService.updateUser(username, userRequestDTO)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .map(user -> ResponseEntity.ok(ApiResponse.success(user, "User updated successfully")))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("User not found")));
     }
 
     @Operation(summary = "Fetch user details", security = @SecurityRequirement(name = "bearerAuth"))
     @GetMapping("/details")
-    public ResponseEntity<UserResponseDTO> getDetails(Authentication authentication) {
+    public ResponseEntity<ApiResponse<UserResponseDTO>> getDetails(Authentication authentication) {
         if (authentication == null || authentication.getPrincipal() == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(ApiResponse.error("Authentication required"));
         }
         String userId = ((User) authentication.getPrincipal()).getUsername();
         return userService.getUser(userId)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .map(user -> ResponseEntity.ok(ApiResponse.success(user, "User details retrieved successfully")))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(ApiResponse.error("User not found")));
     }
 }

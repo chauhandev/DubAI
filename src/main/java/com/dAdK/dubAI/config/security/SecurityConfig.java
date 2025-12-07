@@ -35,6 +35,7 @@ public class SecurityConfig {
                                 "/manifest.json"
                         ).permitAll()
                         .requestMatchers("/api/auth/login", "/api/auth/signup", "/api/auth/register", "/api/auth/verify-otp", "api/auth/google-login").permitAll() // public
+                        .requestMatchers("/api/v1/**").permitAll() //This is a temporary setting to test tts
                         .requestMatchers("/api-docs/**", "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated() // everything else requires JWT
                 )

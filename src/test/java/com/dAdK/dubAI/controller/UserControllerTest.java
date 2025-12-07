@@ -1,5 +1,6 @@
 package com.dAdK.dubAI.controller;
 
+import com.dAdK.dubAI.dto.ApiResponse;
 import com.dAdK.dubAI.dto.userdto.UserRequestDTO;
 import com.dAdK.dubAI.dto.userdto.UserResponseDTO;
 import com.dAdK.dubAI.models.User;
@@ -76,11 +77,12 @@ class UserControllerTest {
         List<UserResponseDTO> users = Arrays.asList(userResponseDTO1, userResponseDTO2);
         when(userService.getAllUsers()).thenReturn(users);
 
-        ResponseEntity<List<UserResponseDTO>> response = userController.getAllUsers();
+        ResponseEntity<ApiResponse<List<UserResponseDTO>>> response = userController.getAllUsers();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(2, response.getBody().size());
-        assertEquals("testuser1", response.getBody().get(0).getUsername());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals(2, response.getBody().getData().size());
+        assertEquals("testuser1", response.getBody().getData().get(0).getUsername());
         verify(userService, times(1)).getAllUsers();
     }
 
@@ -92,10 +94,11 @@ class UserControllerTest {
     void getUser_existingUser_returnsUser() {
         when(userService.getUser(anyString())).thenReturn(Optional.of(userResponseDTO1));
 
-        ResponseEntity<UserResponseDTO> response = userController.getUser("testuser1");
+        ResponseEntity<ApiResponse<UserResponseDTO>> response = userController.getUser("testuser1");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("testuser1", response.getBody().getUsername());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("testuser1", response.getBody().getData().getUsername());
         verify(userService, times(1)).getUser("testuser1");
     }
 
@@ -107,10 +110,11 @@ class UserControllerTest {
     void getUser_nonExistingUser_returnsNotFound() {
         when(userService.getUser(anyString())).thenReturn(Optional.empty());
 
-        ResponseEntity<UserResponseDTO> response = userController.getUser("nonexistent");
+        ResponseEntity<ApiResponse<UserResponseDTO>> response = userController.getUser("nonexistent");
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("User not found", response.getBody().getMessage());
         verify(userService, times(1)).getUser("nonexistent");
     }
 
@@ -122,10 +126,11 @@ class UserControllerTest {
     void updateUser_existingUser_returnsUpdatedUser() {
         when(userService.updateUser(anyString(), any(UserRequestDTO.class))).thenReturn(Optional.of(userResponseDTO1));
 
-        ResponseEntity<UserResponseDTO> response = userController.updateUser("testuser1", userRequestDTO);
+        ResponseEntity<ApiResponse<UserResponseDTO>> response = userController.updateUser("testuser1", userRequestDTO);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("testuser1", response.getBody().getUsername()); // Assuming DTO is updated but username remains same for path
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("testuser1", response.getBody().getData().getUsername()); // Assuming DTO is updated but username remains same for path
         verify(userService, times(1)).updateUser("testuser1", userRequestDTO);
     }
 
@@ -137,10 +142,11 @@ class UserControllerTest {
     void updateUser_nonExistingUser_returnsNotFound() {
         when(userService.updateUser(anyString(), any(UserRequestDTO.class))).thenReturn(Optional.empty());
 
-        ResponseEntity<UserResponseDTO> response = userController.updateUser("nonexistent", userRequestDTO);
+        ResponseEntity<ApiResponse<UserResponseDTO>> response = userController.updateUser("nonexistent", userRequestDTO);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("User not found", response.getBody().getMessage());
         verify(userService, times(1)).updateUser("nonexistent", userRequestDTO);
     }
 
@@ -155,10 +161,11 @@ class UserControllerTest {
         when(authentication.getPrincipal()).thenReturn(principalUser);
         when(userService.getUser(anyString())).thenReturn(Optional.of(userResponseDTO1));
 
-        ResponseEntity<UserResponseDTO> response = userController.getDetails(authentication);
+        ResponseEntity<ApiResponse<UserResponseDTO>> response = userController.getDetails(authentication);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("testuser1", response.getBody().getUsername());
+        assertTrue(response.getBody().isSuccess());
+        assertEquals("testuser1", response.getBody().getData().getUsername());
         verify(userService, times(1)).getUser("authenticatedUser");
     }
 
@@ -170,10 +177,11 @@ class UserControllerTest {
     void getDetails_unauthenticatedUser_returnsUnauthorized() {
         when(authentication.getPrincipal()).thenReturn(null); // Simulate unauthenticated
 
-        ResponseEntity<UserResponseDTO> response = userController.getDetails(authentication);
+        ResponseEntity<ApiResponse<UserResponseDTO>> response = userController.getDetails(authentication);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("Authentication required", response.getBody().getMessage());
         // Verify that the user service was never called for an unauthenticated user
         verify(userService, never()).getUser(anyString());
     }
@@ -189,10 +197,11 @@ class UserControllerTest {
         when(authentication.getPrincipal()).thenReturn(principalUser);
         when(userService.getUser(anyString())).thenReturn(Optional.empty());
 
-        ResponseEntity<UserResponseDTO> response = userController.getDetails(authentication);
+        ResponseEntity<ApiResponse<UserResponseDTO>> response = userController.getDetails(authentication);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
+        assertFalse(response.getBody().isSuccess());
+        assertEquals("User not found", response.getBody().getMessage());
         verify(userService, times(1)).getUser("authenticatedUser");
     }
 }

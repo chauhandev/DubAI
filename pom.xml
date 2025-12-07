@@ -95,7 +95,30 @@
             <artifactId>sendgrid-java</artifactId>
             <version>4.10.3</version>
         </dependency>
+        <dependency>
+            <groupId>com.openai</groupId>
+            <artifactId>openai-java</artifactId>
+            <version>4.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>4.5.13</version>
+        </dependency>
+        <!-- Dependency conflict: google-genai versions 1.4.1 and 1.10.0, removed duplicate -->
 
+
+        <!-- OPENAI JAVA SDK -->
+        <dependency>
+            <groupId>com.theokanning.openai-gpt3-java</groupId>
+            <artifactId>client</artifactId>
+            <version>0.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.13</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -117,14 +140,102 @@
             <artifactId>google-http-client-jackson2</artifactId>
             <version>1.32.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-texttospeech</artifactId>
+            <version>2.38.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.google.genai/google-genai -->
+        <dependency>
+            <groupId>com.google.genai</groupId>
+            <artifactId>google-genai</artifactId>
+            <version>1.10.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.25.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-core</artifactId>
+            <version>3.5.0</version>
+        </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>libraries-bom</artifactId>
+                <version>26.33.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <profiles>
+        <!-- Development Profile (Windows) -->
+        <profile>
+            <id>dev-windows</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>ws.schild</groupId>
+                    <artifactId>jave-nativebin-win64</artifactId>
+                    <version>3.5.0</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <!-- Production Profile (Linux - most common for servers) -->
+<!--        <profile>-->
+<!--            <id>prod-linux</id>-->
+<!--            <dependencies>-->
+<!--                <dependency>-->
+<!--                    <groupId>ws.schild</groupId>-->
+<!--                    <artifactId>jave-nativebin-linux64</artifactId>-->
+<!--                    <version>3.5.0</version>-->
+<!--                </dependency>-->
+<!--            </dependencies>-->
+<!--        </profile>-->
+
+        <!-- Universal Profile (All platforms - for Docker/Cloud) -->
+        <profile>
+            <id>universal</id>
+            <dependencies>
+                <dependency>
+                    <groupId>ws.schild</groupId>
+                    <artifactId>jave-nativebin-win64</artifactId>
+                    <version>3.5.0</version>
+                </dependency>
+<!--                <dependency>-->
+<!--                    <groupId>ws.schild</groupId>-->
+<!--                    <artifactId>jave-nativebin-linux64</artifactId>-->
+<!--                    <version>3.5.0</version>-->
+<!--                </dependency>-->
+<!--                <dependency>-->
+<!--                    <groupId>ws.schild</groupId>-->
+<!--                    <artifactId>jave-nativebin-osx64</artifactId>-->
+<!--                    <version>3.5.0</version>-->
+<!--                </dependency>-->
+            </dependencies>
+        </profile>
+    </profiles>
 
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.14.0</version>
                 <configuration>
                     <source>21</source>
                     <target>21</target>
